@@ -1,0 +1,214 @@
+diff -urN a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	2026-10-22 15:56:34.454041800 +0800
++++ b/CMakeLists.txt	2026-10-27 16:09:22.689226000 +0800
+@@ -70,10 +70,8 @@
+ set(TLS_DEFAULT_CA_FILE ${TLS_DEFAULT_CA_FILE} CACHE PATH "Set the default CA file for libtls" FORCE)
+ set(LIBRESSL_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/LibreSSL" CACHE STRING "Installation directory for the CMake targets")
+ 
+-option(USE_STATIC_MSVC_RUNTIMES "Use /MT instead of /MD in MSVC" OFF)
+-if(USE_STATIC_MSVC_RUNTIMES)
+-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+-endif()
++set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
++set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Zi")
+ 
+ if(NOT LIBRESSL_SKIP_INSTALL)
+ 	set( ENABLE_LIBRESSL_INSTALL ON )
+@@ -287,26 +285,26 @@
+ 
+ 	if(CMAKE_C_COMPILER_ID MATCHES "MSVC" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+ 		set(MSVC_DISABLED_WARNINGS_LIST
+-			"C4018" # 'expression' : signed/unsigned mismatch
++			# do not disable "C4018" # 'expression' : signed/unsigned mismatch
+ 			"C4057" # 'operator' : 'identifier1' indirection to
+ 			        # slightly different base types from 'identifier2'
+ 			"C4100" # 'identifier' : unreferenced formal parameter
+ 			"C4127" # conditional expression is constant
+ 			"C4132" # 'object' : const object should be initialized
+-			"C4146" # unary minus operator applied to unsigned type,
++			# do not disable "C4146" # unary minus operator applied to unsigned type,
+ 			        # result still unsigned
+ 			"C4206" # nonstandard extension used : translation unit is empty
+-			"C4244" # 'argument' : conversion from 'type1' to 'type2',
++			# do not disable "C4244" # 'argument' : conversion from 'type1' to 'type2',
+ 			        # possible loss of data
+ 			"C4245" # 'conversion' : conversion from 'type1' to 'type2',
+ 			        # signed/unsigned mismatch
+-			"C4267" # 'var' : conversion from 'size_t' to 'type',
++			# do not disable "C4267" # 'var' : conversion from 'size_t' to 'type',
+ 			        # possible loss of data
+ 			"C4295" # 'array' : array is too small to include a terminating
+ 			        # null character
+ 			"C4389" # 'operator' : signed/unsigned mismatch
+ 			"C4706" # assignment within conditional expression
+-			"C4996" # The POSIX name for this item is deprecated.
++			# do not disable "C4996" # The POSIX name for this item is deprecated.
+ 			        # Instead, use the ISO C and C++ conformant name
+ 		)
+ 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+@@ -598,8 +596,10 @@
+ endif()
+ 
+ if(CMAKE_SYSTEM_PROCESSOR MATCHES "(aarch64|arm64|ARM64)")
++	set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib")
+ 	set(HOST_AARCH64 true)
+-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
++elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(arm|ARM)")
++	set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib")
+ 	set(HOST_ARM true)
+ 	if(APPLE)
+ 		set(ENABLE_ASM false)
+@@ -849,7 +849,7 @@
+ 		DESTINATION "${LIBRESSL_INSTALL_CMAKEDIR}"
+ 	)
+ 
+-	if(NOT MSVC)
++	if(1)
+ 		# Create pkgconfig files.
+ 		set(prefix      ${CMAKE_INSTALL_PREFIX})
+ 		set(exec_prefix \${prefix})
+diff -urN a/crypto/CMakeLists.txt b/crypto/CMakeLists.txt
+--- a/crypto/CMakeLists.txt	2026-10-22 15:56:34.464041000 +0800
++++ b/crypto/CMakeLists.txt	2026-10-27 16:07:28.357684500 +0800
+@@ -609,7 +609,7 @@
+ 	x509/x_all.c
+ )
+ 
+-set(COMPAT_SRC empty.c)
++set(COMPAT_SRC empty.c version.rc)
+ 
+ set(CRYPTO_UNEXPORT ${CRYPTO_UNEXPORT} BIO_s_log)
+ 
+@@ -856,12 +856,13 @@
+ 
+ export_symbol(crypto ${CMAKE_CURRENT_BINARY_DIR}/crypto_p.sym)
+ target_link_libraries(crypto ${PLATFORM_LIBS})
++set_target_properties(crypto PROPERTIES LINK_FLAGS "/NODEFAULTLIB:kernel32.lib")
++set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /GUARD:CF /debug /debugtype:cv,fixup /opt:ref /opt:icf /incremental:no")
+ set_target_properties(crypto PROPERTIES
+-	OUTPUT_NAME crypto
+-	ARCHIVE_OUTPUT_NAME crypto
++	OUTPUT_NAME libcrypto
++	ARCHIVE_OUTPUT_NAME libcrypto
+ 	EXPORT_NAME Crypto
+ 	VERSION ${CRYPTO_VERSION}
+-	SOVERSION ${CRYPTO_MAJOR_VERSION}
+ )
+ if(NOT CMAKE_VERSION VERSION_LESS 3.27.0)
+ 	set_target_properties(crypto PROPERTIES DLL_NAME_WITH_SOVERSION TRUE)
+diff -urN a/crypto/resource.h b/crypto/resource.h
+--- a/crypto/resource.h	1970-01-01 07:30:00.000000000 +0730
++++ b/crypto/resource.h	2026-10-27 17:53:05.394773800 +0800
+@@ -0,0 +1,15 @@
++//{{NO_DEPENDENCIES}}
++// Microsoft Visual C++ generated include file.
++// Used by version.rc
++//
++
++// Next default values for new objects
++//
++#ifdef APSTUDIO_INVOKED
++#ifndef APSTUDIO_READONLY_SYMBOLS
++#define _APS_NEXT_RESOURCE_VALUE        101
++#define _APS_NEXT_COMMAND_VALUE         40001
++#define _APS_NEXT_CONTROL_VALUE         1000
++#define _APS_NEXT_SYMED_VALUE           101
++#endif
++#endif
+diff -urN a/crypto/version.rc b/crypto/version.rc
+--- a/crypto/version.rc	1970-01-01 07:30:00.000000000 +0730
++++ b/crypto/version.rc	2026-10-27 15:56:38.430852700 +0800
+@@ -0,0 +1,93 @@
++// Microsoft Visual C++ generated resource script.
++//
++#include "resource.h"
++
++#define APSTUDIO_READONLY_SYMBOLS
++/////////////////////////////////////////////////////////////////////////////
++//
++// Generated from the TEXTINCLUDE 2 resource.
++//
++#include "winres.h"
++
++/////////////////////////////////////////////////////////////////////////////
++#undef APSTUDIO_READONLY_SYMBOLS
++
++/////////////////////////////////////////////////////////////////////////////
++// English (United States) resources
++
++#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
++LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
++
++#ifdef APSTUDIO_INVOKED
++/////////////////////////////////////////////////////////////////////////////
++//
++// TEXTINCLUDE
++//
++
++1 TEXTINCLUDE
++BEGIN
++    "resource.h\0"
++END
++
++2 TEXTINCLUDE
++BEGIN
++    "#include ""winres.h""\r\n"
++    "\0"
++END
++
++3 TEXTINCLUDE
++BEGIN
++    "\r\n"
++    "\0"
++END
++
++#endif    // APSTUDIO_INVOKED
++
++
++/////////////////////////////////////////////////////////////////////////////
++//
++// Version
++//
++
++VS_VERSION_INFO VERSIONINFO
++ FILEVERSION 4,4,0,0
++ PRODUCTVERSION 4,4,0,0
++ FILEFLAGSMASK 0x3fL
++#ifdef _DEBUG
++ FILEFLAGS 0x1L
++#else
++ FILEFLAGS 0x0L
++#endif
++ FILEOS 0x40004L
++ FILETYPE 0x0L
++ FILESUBTYPE 0x0L
++BEGIN
++    BLOCK "StringFileInfo"
++    BEGIN
++        BLOCK "040904b0"
++        BEGIN
++            VALUE "FileVersion", "4.4.0.0"
++            VALUE "ProductName", "LibreSSL"
++            VALUE "ProductVersion", "4.4.0.0"
++        END
++    END
++    BLOCK "VarFileInfo"
++    BEGIN
++        VALUE "Translation", 0x409, 1200
++    END
++END
++
++#endif    // English (United States) resources
++/////////////////////////////////////////////////////////////////////////////
++
++
++
++#ifndef APSTUDIO_INVOKED
++/////////////////////////////////////////////////////////////////////////////
++//
++// Generated from the TEXTINCLUDE 3 resource.
++//
++
++
++/////////////////////////////////////////////////////////////////////////////
++#endif    // not APSTUDIO_INVOKED

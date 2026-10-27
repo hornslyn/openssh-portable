@@ -14,11 +14,7 @@ vcpkg_extract_source_archive(
     SOURCE_PATH
     ARCHIVE "${LIBRESSL_SOURCE_ARCHIVE}"
     PATCHES
-        pkgconfig.diff
-        add-resource-header-file.patch
-        add-version-file.patch
-        modify-cmakelists.patch
-        modify-crypto-cmakelists.patch
+        libressl-440.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
