@@ -1,8 +1,6 @@
-diff --git a/crypto/CMakeLists.txt b/crypto/CMakeLists.txt
-index 137cf70..689122b 100644
---- a/crypto/CMakeLists.txt
-+++ b/crypto/CMakeLists.txt
-@@ -596,7 +596,7 @@ set(
+--- a/crypto/CMakeLists.txt	2026-11-11 09:47:39.290188900 +0800
++++ b/crypto/CMakeLists.txt	2026-11-18 18:36:45.395144900 +0800
+@@ -609,7 +609,7 @@
  	x509/x_all.c
  )
  
@@ -11,7 +9,7 @@ index 137cf70..689122b 100644
  
  set(CRYPTO_UNEXPORT ${CRYPTO_UNEXPORT} BIO_s_log)
  
-@@ -848,12 +848,13 @@ add_library(crypto $<TARGET_OBJECTS:crypto_obj> $<TARGET_OBJECTS:compat_obj> emp
+@@ -856,12 +856,13 @@
  
  export_symbol(crypto ${CMAKE_CURRENT_BINARY_DIR}/crypto_p.sym)
  target_link_libraries(crypto ${PLATFORM_LIBS})

@@ -1,8 +1,6 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 9c3d0d4..cc0e904 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -512,7 +512,7 @@ if(ENABLE_LIBRESSL_INSTALL)
+--- a/CMakeLists.txt	2026-11-11 09:47:39.270189300 +0800
++++ b/CMakeLists.txt	2026-11-18 18:24:06.154193600 +0800
+@@ -849,7 +849,7 @@
  		DESTINATION "${LIBRESSL_INSTALL_CMAKEDIR}"
  	)
  
