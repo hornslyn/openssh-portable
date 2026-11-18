@@ -7,7 +7,7 @@ vcpkg_download_distfile(
     URLS "https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/${PORT}-${VERSION}.tar.gz"
          "https://github.com/libressl/portable/releases/download/v${VERSION}/${PORT}-${VERSION}.tar.gz"
     FILENAME "${PORT}-${VERSION}.tar.gz"
-    SHA512 e18aa7016048aaec5988cedc3daea2f3f9c114760c0b7e15b18388ed3ab0a1a0386860a318a8cdbe961bb4369db28a9fe01a9bf04f97b7fbafd45815693fd634
+    SHA512 b4f3807aa04074fe70805a9fe780bba7e3f2167517fcad58474eac78a6cfceb00b0ec5d38e1c246975842b093fceb2fb43a1d1014e5a3e72db7b7bd5f05ad3bf
 )
 
 vcpkg_extract_source_archive(
